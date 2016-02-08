@@ -27,6 +27,55 @@ function Graph()
     for (var i in controlPoints)
       curvePoints.push(controlPoints[i]);
   }
+  
+	this.gx = [];
+	this.gy = [];
+	
+	for(x=0; x<50; ++x){
+		this.gx[x] = [];
+		this.gy[x] = [];
+		for (y = 0; y<50; ++y){
+			this.gx[x][y] = 0;
+			this.gy[x][y] = 0;
+		}
+	}
+  
+  //this.curveFunctionName = "Interpolating Polynomial";
+  this.curveFunctions["Interpolating Polynomial"] = function(controlPoints, curvePoints)
+  {
+	
+	var index = 0;
+	for (var i in controlPoints) {
+		JSGraph.gx[0][index] = controlPoints[i].x;
+		JSGraph.gy[0][index] = controlPoints[i].y;
+		index++;
+	}
+	
+	var counter = 1;
+	while(counter < index){
+		for(var i = 0; i < index - counter; ++i){
+			JSGraph.gx[counter][i] = (JSGraph.gx[counter-1][i+1] - JSGraph.gx[counter-1][i]) / counter;
+			JSGraph.gy[counter][i] = (JSGraph.gy[counter-1][i+1] - JSGraph.gy[counter-1][i]) / counter;
+		}
+		counter++;
+	}
+	
+	for(var i =0; i<=5000; ++i){
+		var t = (index-1) / 5000 * i;
+		var resultX = JSGraph.gx[0][0];
+		var resultY = JSGraph.gy[0][0];
+		
+		var termX = JSGraph.gx[0][0];
+		var termY = JSGraph.gy[0][0];
+		for (var j = 1; j<index; j++){
+			termX = termX / JSGraph.gx[j-1][0] * JSGraph.gx[j][0] * (t-j+1);
+			resultX += termX;
+			termY = termY / JSGraph.gy[j-1][0] * JSGraph.gy[j][0] * (t-j+1);
+			resultY += termY;
+		}
+		curvePoints.push({x:resultX, y:resultY});
+	}
+  }
 
   // Function to draw shells
   this.shellFunction = function(){};
@@ -88,8 +137,7 @@ function Graph()
 
     // If mouse is down, drag selected points
     if (mouseDown)
-      //MovePoints(deltaX, deltaY);
-      MovePoints(0, deltaY);
+      MovePoints(deltaX, deltaY);
   });
 
   $(JSGraphics.canvas).mouseup(function(event)
